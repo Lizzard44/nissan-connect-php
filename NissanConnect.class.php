@@ -160,7 +160,17 @@ class NissanConnect {
      */
     public function getLocation() {
       $result = $this->sendRequest('MyCarFinderRequest.php');
-      return $this->waitUntilSuccess('MyCarFinderResultRequest.php');
+      $result2 = $this->waitUntilSuccess('MyCarFinderResultRequest.php');
+
+      $lresult->Home = $result2->Location->Home;
+      $lresult->TimeStamp = $result2->timeStamp;
+      if (isset($result2->lat)) {
+            $lresult->Latitude = $result2->lat;
+      }
+      if (isset($result2->lng)) {
+            $lresult->Longitude = $result2->lng;
+      }
+      return $lresult;
     }
 
     /**
@@ -304,6 +314,21 @@ class NissanConnect {
         } else {
             $result->ACDurationPluggedSec = FALSE;
         }
+        if (isset($response2->RemoteACRecords->PreAC_unit)) {
+            $result->PreAC_unit = $response2->RemoteACRecords->PreAC_unit;
+        } else {
+            $result->PreAC_unit = NULL;
+        }
+        if (isset($response2->RemoteACRecords->PreAC_temp)) {
+            $result->PreAC_temp = (int) $response2->RemoteACRecords->PreAC_temp;
+        } else {
+            $result->PreAC_temp = FALSE;
+        }
+        if (isset($response2->RemoteACRecords->Inc_temp)) {
+            $result->Inc_temp = (int) $response2->RemoteACRecords->Inc_temp;
+        } else {
+            $result->Inc_temp = FALSE;
+        }
 
         return $result;
     }
@@ -319,6 +344,47 @@ class NissanConnect {
         if (array_search($response->{$what}->OperationResult, $allowed_op_result) === FALSE) {
             throw new Exception("Invalid 'OperationResult' received in call to '{$what}Request.php': " . $response->{$what}->OperationResult, static::ERROR_CODE_INVALID_RESPONSE);
         }
+    }
+
+
+    public function getPrice($mymonth) {
+      $this->prepare();
+      $result = $this->sendRequest('PriceSimulatorDetailInfoRequest.php', $mymonth);
+
+      $result2 = new \stdClass();
+      $result2->AnzFahrt = $result->PriceSimulatorDetailInfoResponsePersonalData->PriceSimulatorTotalInfo->TotalNumberOfTrips;
+      $result2->Nachgeladen = $result->PriceSimulatorDetailInfoResponsePersonalData->PriceSimulatorTotalInfo->TotalPowerConsumptTotal;
+      $result2->Verbraucht = $result->PriceSimulatorDetailInfoResponsePersonalData->PriceSimulatorTotalInfo->TotalPowerConsumptMoter;
+      $result2->Erzeugt = $result->PriceSimulatorDetailInfoResponsePersonalData->PriceSimulatorTotalInfo->TotalPowerConsumptMinus;
+      $result2->Distanz = $result->PriceSimulatorDetailInfoResponsePersonalData->PriceSimulatorTotalInfo->TotalTravelDistance;
+      $result2->Durchnitt = $result->PriceSimulatorDetailInfoResponsePersonalData->PriceSimulatorTotalInfo->TotalElectricMileage;
+      $result2->Einsparung = $result->PriceSimulatorDetailInfoResponsePersonalData->PriceSimulatorTotalInfo->TotalCO2Reductiont;
+      $result2->Monat = $result->PriceSimulatorDetailInfoResponsePersonalData->DisplayMonth;
+
+      return $result2;
+    }
+
+    public function getACstatus() {
+      $this->prepare();
+#      $result = $this->sendRequest('GetScheduledACRemoteRequest.php');
+      $result = $this->sendRequest('RemoteACRecordsRequest.php');
+
+
+      $result2 = new \stdClass();
+      $result2->Klima = $result->RemoteACRecords->RemoteACOperation;
+      $result2->StatusTime = $result->RemoteACRecords->ACStartStopDateAndTime;
+      $result2->Reichweite = $result->RemoteACRecords->CruisingRangeAcOn;
+      $result2->InTemp = $result->RemoteACRecords->Inc_temp;
+
+#      $result2->Nachgeladen = $result->PriceSimulatorDetailInfoResponsePersonalData->PriceSimulatorTotalInfo->TotalPowerConsumptTotal;
+#      $result2->Verbraucht = $result->PriceSimulatorDetailInfoResponsePersonalData->PriceSimulatorTotalInfo->TotalPowerConsumptMoter;
+#      $result2->Erzeugt = $result->PriceSimulatorDetailInfoResponsePersonalData->PriceSimulatorTotalInfo->TotalPowerConsumptMinus;
+#      $result2->Distanz = $result->PriceSimulatorDetailInfoResponsePersonalData->PriceSimulatorTotalInfo->TotalTravelDistance;
+#      $result2->Durchnitt = $result->PriceSimulatorDetailInfoResponsePersonalData->PriceSimulatorTotalInfo->TotalElectricMileage;
+#      $result2->Einsparung = $result->PriceSimulatorDetailInfoResponsePersonalData->PriceSimulatorTotalInfo->TotalCO2Reductiont;
+#      $result2->Monat = $result->PriceSimulatorDetailInfoResponsePersonalData->DisplayMonth;
+
+      return $result2;
     }
 
     /**
@@ -468,7 +534,7 @@ class NissanConnect {
             if (time() - $start > $this->maxWaitTime) {
                 throw new Exception("Timeout waiting for result using $path", static::ERROR_CODE_TIMEOUT);
             }
-            sleep(1);
+            sleep(3);
         }
     }
 
