@@ -373,10 +373,10 @@ class NissanConnect {
 
 
       $result2 = new \stdClass();
-      $result2->Klima = $result->RemoteACRecords->RemoteACOperation;
-      $result2->StatusTime = $result->RemoteACRecords->ACStartStopDateAndTime;
-      $result2->Reichweite = $result->RemoteACRecords->CruisingRangeAcOn;
-      $result2->InTemp = $result->RemoteACRecords->Inc_temp;
+      $result2->Klima = empty($result->RemoteACRecords->RemoteACOperation) ? '' : $result->RemoteACRecords->RemoteACOperation;
+      $result2->StatusTime = empty($result->RemoteACRecords->ACStartStopDateAndTime) ? '' : $result->RemoteACRecords->ACStartStopDateAndTime;
+      $result2->Reichweite = empty($result->RemoteACRecords->CruisingRangeAcOn) ? '' : $result->RemoteACRecords->CruisingRangeAcOn;
+      $result2->InTemp = empty($result->RemoteACRecords->Inc_temp) ? '' : $result->RemoteACRecords->Inc_temp;
 
 #      $result2->Nachgeladen = $result->PriceSimulatorDetailInfoResponsePersonalData->PriceSimulatorTotalInfo->TotalPowerConsumptTotal;
 #      $result2->Verbraucht = $result->PriceSimulatorDetailInfoResponsePersonalData->PriceSimulatorTotalInfo->TotalPowerConsumptMoter;
@@ -498,7 +498,7 @@ class NissanConnect {
                 $this->debug("Found resultKey in response: $this->resultKey");
             }
             if ($json->status !== 200) {
-                if (($json->status == 401 || $json->status == 404) && $this->shouldRetry) {
+                if (($json->status == 401 || $json->status == 404 || $json->status == 408) && $this->shouldRetry) {
                     $this->debug("Request for '$path' failed. Response received: " . json_encode($json) . " Will retry.");
                     $this->shouldRetry = FALSE; // Don't loop infinitely!
                     $this->config->customSessionID = NULL;
