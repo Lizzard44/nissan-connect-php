@@ -20,8 +20,8 @@ along with Greyhole.  If not, see <http://www.gnu.org/licenses/>.
 class NissanConnect {
 
     /* Those are the possible values for the constructor 'country' parameter. */
-    const COUNTRY_CANADA = 'NCI';
-    const COUNTRY_US = 'NNA';
+    const COUNTRY_CANADA = 'CA';
+    const COUNTRY_US = 'US';
     const COUNTRY_EU = 'NE';
     const COUNTRY_AUSTRALIA = 'NMA';
     const COUNTRY_JAPAN = 'NML';
@@ -311,7 +311,7 @@ class NissanConnect {
         } else {
             $result->ACDurationBatterySec = FALSE;
         }
-        if (isset($response2->RemoteACRecords->ACDurationBatterySec)) {
+        if (isset($response2->RemoteACRecords->ACDurationPluggedSec)) {
             $result->ACDurationPluggedSec = (int) $response2->RemoteACRecords->ACDurationPluggedSec;
         } else {
             $result->ACDurationPluggedSec = FALSE;
